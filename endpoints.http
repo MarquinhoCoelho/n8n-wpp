@@ -1,0 +1,92 @@
+### =================================================================
+### DOCUMENTAÇÃO DA API DE PROTOCOLOS E LEADS
+### =================================================================
+
+###
+# Endpoint: /manageProtocols
+# Método: POST
+# Descrição:
+#   Gerencia o ciclo de vida de um protocolo de atendimento.
+#   - Se já existir um protocolo 'ativo' para o 'chatId', adiciona a nova mensagem a ele.
+#   - Se não houver, cria um novo lead (caso não exista), cria um novo protocolo 'ativo' e adiciona a mensagem.
+# Corpo da Requisição (JSON):
+#   - "chatId": (string, obrigatório) - O ID do chat do WhatsApp.
+#   - "message": (string, obrigatório) - O conteúdo da mensagem a ser salva.
+# Retorna:
+#   - Em sucesso (200): Um objeto com uma mensagem e o 'idProtocol'.
+#   - Em erro (400): Se 'chatId' ou 'message' não forem enviados.
+POST http://localhost:3002/manageProtocols
+Content-Type: application/json
+
+{
+    "chatId": "5548999999999@c.us",
+    "message": "Olá, gostaria de iniciar um atendimento."
+}
+
+###
+# Endpoint: /saveOrUpdateLead
+# Método: POST
+# Descrição:
+#   Cria um novo lead ou atualiza um existente com base no 'chatId'.
+#   É ideal para ser usado pela ferramenta da IA para cadastrar os dados coletados.
+# Corpo da Requisição (JSON):
+#   - "chatId": (string, obrigatório) - O identificador único do lead.
+#   - "name": (string, opcional)
+#   - "phone": (string, opcional)
+#   - "email": (string, opcional)
+#   - "address": (string, opcional)
+#   - "entrada": (number, opcional)
+#   - "salarioBruto": (number, opcional)
+# Retorna:
+#   - Em sucesso (200): Uma mensagem de sucesso ("Lead criado/atualizado com sucesso.").
+POST http://localhost:3002/saveOrUpdateLead
+Content-Type: application/json
+
+{
+    "chatId": "5548999999999@c.us",
+    "name": "João da Silva",
+    "phone": "48999999999",
+    "email": "joao.silva@example.com",
+    "address": "Rua das Flores, 123 - Centro, Florianópolis",
+    "entrada": 50000,
+    "salarioBruto": 10000
+}
+
+###
+# Endpoint: /lead/{chatId}
+# Método: GET
+# Descrição:
+#   Busca e retorna os dados de um lead específico pelo seu 'chatId'.
+# Parâmetros da URL:
+#   - "chatId": (string, obrigatório) - O ID do chat a ser buscado.
+# Retorna:
+#   - Em sucesso (200): O objeto completo do lead.
+#   - Em erro (404): Se o lead com o 'chatId' especificado não for encontrado.
+GET http://localhost:3002/lead/120363399915345340@g.us
+
+###
+# Endpoint: /inativeProtocol
+# Método: POST
+# Descrição:
+#   Inativa o protocolo de atendimento que estiver 'ativo' para um determinado 'chatId'.
+#   Útil para encerrar um atendimento manualmente ou via ferramenta.
+# Corpo da Requisição (JSON):
+#   - "chatId": (string, obrigatório) - O ID do chat cujo protocolo será inativado.
+# Retorna:
+#   - Em sucesso (200): Uma mensagem de sucesso.
+#   - Em erro (404): Se não houver protocolo ativo para o chatId.
+POST http://localhost:3002/inativeProtocol
+Content-Type: application/json
+
+{
+    "chatId": "5548999999999@c.us"
+}
+
+
+###
+# Endpoint: /reset-database
+# Método: POST
+# Descrição:
+#   (APENAS PARA TESTES) Limpa completamente todas as tabelas (leads, protocols, messages).
+#   Use com cuidado.
+POST http://localhost:3002/reset-database
