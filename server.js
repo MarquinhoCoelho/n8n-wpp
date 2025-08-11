@@ -11,17 +11,40 @@ app.get('/leads/:chatId', async (request, reply) => {
   if (!chatId) {
     return reply.code(400).send({ message: 'chatId do chat é obrigatório.' });
   }
-  const lead = await database.getLeadByChatId(chatId);
 
-  if (!lead) {
-    return reply.code(200).send({ message: 'Lead não encontrado.' });
+  try {
+    const lead = await database.getLeadByChatId(chatId);
+
+    if (!lead) {
+      // Conforme solicitado: 404 Not Found com essa mensagem JSON
+      return reply.code(404).send({ message: 'Lead não encontrado.' });
+    }
+
+    // procura protocolo ativo (open OR in_progress) - função já atualizada no database
+    let protocol = await database.getProtocolActiveByLead(chatId);
+
+    if (!protocol) {
+      const infoProtocol = {
+        chat_id: chatId,
+        status: 'open',
+        human: false,
+        attendant_id: null,
+        hot_lead: 'pending',
+        last_message: ''
+      }
+      protocol = await database.createProtocol(infoProtocol);
+    }
+
+    return reply.code(200).send({ lead, protocol });
+  } catch (err) {
+    // Erro de banco ou inesperado
+    return reply.code(500).send({ message: 'Erro interno do servidor.', error: err.message });
   }
-	return reply.code(200).send(lead);
 });
 
 app.get('/leads', async (request, reply) => {
-  	const leads = await database.getLeads();
-	return reply.code(200).send(leads);
+    const leads = await database.getLeads();
+  return reply.code(200).send(leads);
 });
 
 app.post('/leads', async (request, reply) => {
@@ -54,8 +77,6 @@ app.delete('/leads/:chatId', async (request, reply) => {
     return reply.code(400).send({ message: err.message });
   }
 });
-
-// Protocols //
 
 // PROTOCOLS //
 
@@ -105,6 +126,72 @@ app.delete('/protocols/:id', async (request, reply) => {
     return reply.code(200).send({message: 'Protocolo deletado com sucesso.', protocol});
   } catch (err) {
     return reply.code(400).send({ message: err.message });
+  }
+});
+
+// NOVO ENDPOINT: transbordo / assign
+app.post('/protocols/:id/assign', async (request, reply) => {
+  const { id } = request.params;
+  const { attendant_id } = request.body || {};
+
+  if (!id) {
+    return reply.code(400).send({ message: 'ID do protocolo é obrigatório.' });
+  }
+  if (!attendant_id) {
+    return reply.code(400).send({ message: 'attendant_id é obrigatório no corpo da requisição.' });
+  }
+
+  try {
+    const existingProtocol = await database.getProtocolById(id);
+    if (!existingProtocol) {
+      return reply.code(404).send({ message: 'Protocolo não encontrado.' });
+    }
+
+    const protocolToUpdate = {
+      id,
+      chat_id: existingProtocol.chat_id,
+      status: 'in_progress',
+      human: true,
+      attendant_id,
+      hot_lead: existingProtocol.hot_lead,
+      last_message: existingProtocol.last_message
+    };
+
+    const updated = await database.editProtocol(protocolToUpdate);
+    return reply.code(200).send(updated);
+  } catch (err) {
+    return reply.code(500).send({ message: 'Erro interno do servidor.', error: err.message });
+  }
+});
+
+// NOVO ENDPOINT: close
+app.post('/protocols/:id/close', async (request, reply) => {
+  const { id } = request.params;
+
+  if (!id) {
+    return reply.code(400).send({ message: 'ID do protocolo é obrigatório.' });
+  }
+
+  try {
+    const existingProtocol = await database.getProtocolById(id);
+    if (!existingProtocol) {
+      return reply.code(404).send({ message: 'Protocolo não encontrado.' });
+    }
+
+    const protocolToUpdate = {
+      id,
+      chat_id: existingProtocol.chat_id,
+      status: 'closed',
+      human: existingProtocol.human,
+      attendant_id: existingProtocol.attendant_id,
+      hot_lead: existingProtocol.hot_lead,
+      last_message: existingProtocol.last_message
+    };
+
+    const updated = await database.editProtocol(protocolToUpdate);
+    return reply.code(200).send(updated);
+  } catch (err) {
+    return reply.code(500).send({ message: 'Erro interno do servidor.', error: err.message });
   }
 });
 
