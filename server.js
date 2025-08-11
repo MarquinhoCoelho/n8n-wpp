@@ -20,23 +20,14 @@ app.get('/leads/:chatId', async (request, reply) => {
       return reply.code(200).send({ message: 'Lead não encontrado.' });
     }
 
-    // procura protocolo ativo (open OR in_progress) - função já atualizada no database
     let protocol = await database.getProtocolActiveByLead(chatId);
+    let hasProtocol = false;
 
-    if (!protocol) {
-      const infoProtocol = {
-        id: randomUUID(),
-        chat_id: chatId,
-        status: 'open',
-        human: false,
-        attendant_id: null,
-        hot_lead: 'pending',
-        last_message: ''
-      }
-      protocol = await database.createProtocol(infoProtocol);
+    if (protocol) {
+      hasProtocol = true;
     }
 
-    return reply.code(200).send({ lead, protocol });
+    return reply.code(200).send({ lead, protocol, hasProtocol });
   } catch (err) {
     // Erro de banco ou inesperado
     return reply.code(500).send({ message: 'Erro interno do servidor.', error: err.message });

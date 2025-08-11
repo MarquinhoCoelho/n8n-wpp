@@ -7,7 +7,7 @@
 ### Etapa 1: Lead envia a primeira mensagem.
 # O sistema verifica se há um protocolo ativo. Como não há, ele cria um novo com status "open".
 # OBS: Use um chatId que já exista na base de dados.
-GET https://api.personal-dev.online/leads/254899998888@c.us
+GET https://api.personal-dev.online/leads/120363419109066086@g.us
 
 
 ### O lead deve ser criado caso não tenha ou seja se o endpoint anterior retornar: 'Lead não encontrado.'
@@ -88,7 +88,6 @@ POST https://api.personal-dev.online/protocols
 Content-Type: application/json
 
 {
-    "id": "uuid-protocolo",
     "chat_id": "554899998888@c.us",
     "human": false,
     "hot_lead": "sim",
@@ -108,7 +107,6 @@ PUT https://api.personal-dev.online/protocols
 Content-Type: application/json
 
 {
-    "id": "uuid-protocolo",
     "chat_id": "554899998888@c.us",
     "human": true,
     "hot_lead": "não",

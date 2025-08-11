@@ -86,11 +86,10 @@ export class DatabasePostgres {
   }
 
   async getProtocolActiveByLead(chatId) {
-    // ALTERAÇÃO: procura por protocolos com status 'open' OU 'in_progress'
     const [protocol] = await sql`
       SELECT * FROM protocols
       WHERE chat_id = ${chatId}
-        AND (status = 'open' OR status = 'in_progress')
+        AND status = 'open'
       ORDER BY created_at DESC
       LIMIT 1
     `;
@@ -98,8 +97,8 @@ export class DatabasePostgres {
   }
 
   async createProtocol(protocolData) {
+    const id = randomUUID();
     const {
-      id,
       chat_id,
       human = false,
       hot_lead,
