@@ -12,6 +12,10 @@ app.get('/leads/:chatId', async (request, reply) => {
     return reply.code(400).send({ message: 'chatId do chat é obrigatório.' });
   }
   const lead = await database.getLeadByChatId(chatId);
+
+  if (!lead) {
+    return reply.code(200).send({ message: 'Lead não encontrado.' });
+  }
 	return reply.code(200).send(lead);
 });
 
