@@ -1,28 +1,25 @@
-# Versão do Docker Compose
 version: '3.8'
 
-# Definição dos serviços (contêineres)
 services:
-  # Serviço da sua API Node.js (Fastify)
+  # API Node.js
   api:
-    build: . # Constrói a imagem a partir do Dockerfile na pasta atual
+    build: .
     container_name: api
-    platform: linux/amd64
     ports:
-      - "3002:3002" # Mapeia a porta 3002 do contêiner para a porta 3002 da sua máquina
+      - "3002:3002"
     volumes:
-      - .:/app # Monta o diretório atual para dentro do contêiner para hot-reload
+      - .:/app
       - /app/node_modules
     env_file:
-      - .env # Carrega as variáveis de ambiente do arquivo .env
+      - .env
     depends_on:
-      - db # Garante que o serviço 'db' (Postgres) inicie antes da API
+      - db
+      - redis
 
-  # Serviço do Banco de Dados PostgreSQL
+  # Banco de dados PostgreSQL
   db:
     image: postgres:15
     container_name: db
-    platform: linux/amd64
     environment:
       POSTGRES_USER: ${PGUSER}
       POSTGRES_PASSWORD: ${PGPASSWORD}
@@ -33,39 +30,35 @@ services:
       - pgdata:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
-  # Serviço do Redis
+  # Redis
   redis:
     image: redis:latest
     container_name: redis
-    platform: linux/amd64
     command: redis-server --requirepass ${REDIS_PASSWORD}
     ports:
       - "6379:6379"
     volumes:
       - redisdata:/data
 
-  # Serviço do n8n
+  # n8n
   n8n:
     image: n8nio/n8n:latest
     container_name: n8n
-    platform: linux/amd64
     ports:
       - "5678:5678"
     env_file:
       - .env
     environment:
-      # Configuração para o n8n usar o Postgres como banco de dados
       - DB_TYPE=postgresdb
-      - DB_POSTGRESDB_HOST=db # Usa o nome do serviço 'db' para comunicação interna
+      - DB_POSTGRESDB_HOST=db
       - DB_POSTGRESDB_PORT=5432
       - DB_POSTGRESDB_DATABASE=${PGDATABASE}
       - DB_POSTGRESDB_USER=${PGUSER}
       - DB_POSTGRESDB_PASSWORD=${PGPASSWORD}
       - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
-      # URL que o n8n usa para gerar os webhooks, usando a rede do host
-      - WEBHOOK_URL=http://host.docker.internal:5678/
+      - WEBHOOK_URL=https://n8n.personal-dev.online/
       - GENERIC_TIMEZONE=America/Sao_Paulo
-      - N8N_LOG_LEVEL=debug # Nível de log para facilitar a depuração
+      - N8N_LOG_LEVEL=debug
       - N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE=true
     volumes:
       - n8n_data:/home/node/.n8n
@@ -73,25 +66,21 @@ services:
       - db
       - redis
 
-  # Serviço do WAHA (WhatsApp HTTP API)
+  # WAHA (WhatsApp HTTP API)
   waha:
     image: devlikeapro/waha:latest
     container_name: waha
-    platform: linux/amd64
     ports:
       - "3000:3000"
     environment:
-      # A URL do webhook aponta para o n8n através da rede do host
-      - WHATSAPP_HOOK_URL=http://host.docker.internal:5678/webhook/webhook
-      # --- ALTERAÇÃO PRINCIPAL ---
-      # Agora, o WAHA só notificará o n8n sobre novas mensagens.
+      - WHATSAPP_HOOK_URL=https://n8n.personal-dev.online/webhook/whatsapp-mensagem
       - WHATSAPP_HOOK_EVENTS=message
+      - WAHA_API_KEY=${WAHA_API_KEY}
     volumes:
       - waha_sessions:/app/.sessions
     depends_on:
       - n8n
 
-# Definição dos volumes nomeados
 volumes:
   pgdata:
   redisdata:
