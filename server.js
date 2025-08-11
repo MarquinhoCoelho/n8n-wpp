@@ -6,13 +6,13 @@ const database = new DatabasePostgres()
 
 // LEADS //
 
-app.get('/leads:chatId', async (request, reply) => {
+app.get('/leads/:chatId', async (request, reply) => {
   const { chatId } = request.params;
   if (!chatId) {
     return reply.code(400).send({ message: 'chatId do chat é obrigatório.' });
   }
   const lead = await database.getLeadByChatId(chatId);
-	return reply.code(201).send(lead);
+	return reply.code(200).send(lead);
 });
 
 app.get('/leads', async (request, reply) => {
@@ -51,7 +51,7 @@ app.delete('/leads', async (request, reply) => {
 
 // PROTOCOLS //
 
-app.get('/protocols:id', async (request, reply) => {
+app.get('/protocols/:id', async (request, reply) => {
   const { id } = request.params;
   if (!id) {
     return reply.code(400).send({ message: 'ID do protocolo é obrigatório.' });
@@ -94,7 +94,7 @@ app.delete('/protocols', async (request, reply) => {
 
 // MESSAGES //
 
-app.get('/messages:id', async (request, reply) => {
+app.get('/messages/:id', async (request, reply) => {
   const { id } = request.params;
   if (!id) {
     return reply.code(400).send({ message: 'ID da mensagem é obrigatório.' });
