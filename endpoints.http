@@ -1,6 +1,16 @@
+### (conteúdo pré-existente do arquivo endpoints.http permanece acima)
 ### =================================================================
-### DOCUMENTAÇÃO DA API
+### FLUXO DE VIDA DE UM PROTOCOLO DE ATENDIMENTO
 ### =================================================================
+
+
+### Etapa 1: Lead envia a primeira mensagem.
+# O sistema verifica se há um protocolo ativo. Como não há, ele cria um novo com status "open".
+# OBS: Use um chatId que já exista na base de dados.
+GET https://api.personal-dev.online/leads/254899998888@c.us
+
+
+### O lead deve ser criado caso não tenha ou seja se o endpoint anterior retornar: 'Lead não encontrado.'
 
 ### Criar Lead
 POST https://api.personal-dev.online/leads
@@ -16,11 +26,45 @@ Content-Type: application/json
     "regiaoInteresse": "Centro"
 }
 
+# depois de criar o lead o sistema vai perguntar o que o lead deseja
+# quando ele responder o sistema vai criar um protocolo com status "open"
+# e o campo human vai ser false, pois é um bot que está respondendo
+# a ia vai retornar o protocolo criado
+# a ia vai tirar todas as duvidas do lead e vai perguntar se ele quer marcar uma reunião online
+# a ia vai buscar os atendentes, se tiver um atendente só ela vai atribuir o protocolo para ele
+# a ia vai consultar os horários disponíveis na agenda e vai sugerir um horário por exemplo se o ultimo evento na agenda terminaria 14h00 então ela vai criar 14h30.
+# quando tiver uma reunião marcada o status do protocolo vai mudar para "assigned_attendant" 
+
+### Etapa 2: Atendente humano assume a conversa (Transbordo).
+# O status do protocolo muda para "in_progress" e o attendant_id é preenchido.
+# Substitua {{protocolId}} pelo ID do protocolo retornado na Etapa 1.
+POST https://api.personal-dev.online/protocols/e1452be5-27d8-4069-a126-43667daa326e/assign
+Content-Type: application/json
+
+{
+    "attendant_id": "atendente_01"
+}
+
+### Etapa 3: Atendente finaliza a conversa.
+# O status do protocolo muda para "closed".
+# Substitua {{protocolId}} pelo ID do protocolo.
+POST https://api.personal-dev.online/protocols/e1452be5-27d8-4069-a126-43667daa326e/close
+
+### Etapa 4: Lead envia uma nova mensagem dias depois.
+# O sistema verifica se há um protocolo ativo. Como o anterior está "closed", ele cria um NOVO protocolo com status "open".
+GET https://api.personal-dev.online/leads/554899998888@c.us
+
+
+
+
+# ### =================================================================
+# ### DOCUMENTAÇÃO DA API
+# ### =================================================================
+
+GET https://api.personal-dev.online/attendants
+
 ### Consultar todos os Leads
 GET https://api.personal-dev.online/leads
-
-### Consultar Lead por chatId
-GET https://api.personal-dev.online/leads/554899998888@c.us
 
 ### Editar Lead
 PUT https://api.personal-dev.online/leads

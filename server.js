@@ -17,8 +17,7 @@ app.get('/leads/:chatId', async (request, reply) => {
     const lead = await database.getLeadByChatId(chatId);
 
     if (!lead) {
-      // Conforme solicitado: 404 Not Found com essa mensagem JSON
-      return reply.code(404).send({ message: 'Lead não encontrado.' });
+      return reply.code(200).send({ message: 'Lead não encontrado.' });
     }
 
     // procura protocolo ativo (open OR in_progress) - função já atualizada no database
@@ -48,6 +47,17 @@ app.get('/leads', async (request, reply) => {
     const leads = await database.getLeads();
   return reply.code(200).send(leads);
 });
+
+app.get('/attendants', async (request, reply) => {
+  
+  return reply.code(200).send(
+    [
+  { "id": "atendente_01", "name": "Marcos", "status": "available" }
+]
+  );
+});
+
+
 
 app.post('/leads', async (request, reply) => {
   const leadData = request.body;

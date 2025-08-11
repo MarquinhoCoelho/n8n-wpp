@@ -115,7 +115,7 @@ export class DatabasePostgres {
       VALUES (
         ${id}, ${chat_id}, ${human}, ${hot_lead}, ${status}, ${attendant_id}, ${last_message}
       )
-      RETURNING id, created_at
+      RETURNING id, created_at, status
     `;
     return newProtocol;
   }
