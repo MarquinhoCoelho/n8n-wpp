@@ -1,5 +1,6 @@
 import fastify from 'fastify'
 import { DatabasePostgres } from './database-postgres.js'
+import { randomUUID } from 'node:crypto'
 
 const app = fastify()
 const database = new DatabasePostgres()
@@ -25,6 +26,7 @@ app.get('/leads/:chatId', async (request, reply) => {
 
     if (!protocol) {
       const infoProtocol = {
+        id: randomUUID(),
         chat_id: chatId,
         status: 'open',
         human: false,
