@@ -3,14 +3,13 @@ CREATE TABLE IF NOT EXISTS leads (
     name TEXT,
     phone TEXT,
     email TEXT,
-    address TEXT,
-    entrada NUMERIC,
-    salario_bruto NUMERIC
+    custom_fields JSONB,
+    createdat TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS protocols (
     id UUID PRIMARY KEY,
-    chat_id TEXT NOT NULL, -- UNIQUE removido daqui
+    chat_id TEXT NOT NULL,
     human BOOLEAN DEFAULT FALSE,
     hot_lead TEXT,
     status TEXT NOT NULL,

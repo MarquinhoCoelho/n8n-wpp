@@ -1,92 +1,123 @@
 ### =================================================================
-### DOCUMENTAÇÃO DA API DE PROTOCOLOS E LEADS
+### DOCUMENTAÇÃO DA API
 ### =================================================================
 
-###
-# Endpoint: /manageProtocols
-# Método: POST
-# Descrição:
-#   Gerencia o ciclo de vida de um protocolo de atendimento.
-#   - Se já existir um protocolo 'ativo' para o 'chatId', adiciona a nova mensagem a ele.
-#   - Se não houver, cria um novo lead (caso não exista), cria um novo protocolo 'ativo' e adiciona a mensagem.
-# Corpo da Requisição (JSON):
-#   - "chatId": (string, obrigatório) - O ID do chat do WhatsApp.
-#   - "message": (string, obrigatório) - O conteúdo da mensagem a ser salva.
-# Retorna:
-#   - Em sucesso (200): Um objeto com uma mensagem e o 'idProtocol'.
-#   - Em erro (400): Se 'chatId' ou 'message' não forem enviados.
-POST http://localhost:3002/manageProtocols
+### Criar Lead
+POST https://api.personal-dev.online/leads
 Content-Type: application/json
 
 {
-    "chatId": "5548999999999@c.us",
-    "message": "Olá, gostaria de iniciar um atendimento."
+    "name": "Teste",
+    "chatId": "554899998888@c.us",
+    "phone": "4899998888",
+    "email": "ana.silva@email.com",
+    "address": "Rua das Flores, 456, Florianópolis",
+    "valorEntrada": 50000,
+    "regiaoInteresse": "Centro"
 }
 
-###
-# Endpoint: /saveOrUpdateLead
-# Método: POST
-# Descrição:
-#   Cria um novo lead ou atualiza um existente com base no 'chatId'.
-#   É ideal para ser usado pela ferramenta da IA para cadastrar os dados coletados.
-# Corpo da Requisição (JSON):
-#   - "chatId": (string, obrigatório) - O identificador único do lead.
-#   - "name": (string, opcional)
-#   - "phone": (string, opcional)
-#   - "email": (string, opcional)
-#   - "address": (string, opcional)
-#   - "entrada": (number, opcional)
-#   - "salarioBruto": (number, opcional)
-# Retorna:
-#   - Em sucesso (200): Uma mensagem de sucesso ("Lead criado/atualizado com sucesso.").
-POST http://localhost:3002/saveOrUpdateLead
+### Consultar todos os Leads
+GET https://api.personal-dev.online/leads
+
+### Consultar Lead por chatId
+GET https://api.personal-dev.online/leads:554899998888@c.us
+
+### Editar Lead
+PUT https://api.personal-dev.online/leads
 Content-Type: application/json
 
 {
-    "chatId": "5548999999999@c.us",
-    "name": "João da Silva",
-    "phone": "48999999999",
-    "email": "joao.silva@example.com",
-    "address": "Rua das Flores, 123 - Centro, Florianópolis",
-    "entrada": 50000,
-    "salarioBruto": 10000
+    "name": "Teste Editado",
+    "chatId": "554899998888@c.us",
+    "phone": "4899998888",
+    "email": "ana.silva@email.com",
+    "address": "Rua das Flores, 456, Florianópolis",
+    "valorEntrada": 60000,
+    "regiaoInteresse": "Centro"
 }
 
-###
-# Endpoint: /lead/{chatId}
-# Método: GET
-# Descrição:
-#   Busca e retorna os dados de um lead específico pelo seu 'chatId'.
-# Parâmetros da URL:
-#   - "chatId": (string, obrigatório) - O ID do chat a ser buscado.
-# Retorna:
-#   - Em sucesso (200): O objeto completo do lead.
-#   - Em erro (404): Se o lead com o 'chatId' especificado não for encontrado.
-GET http://localhost:3002/lead/120363399915345340@g.us
-
-###
-# Endpoint: /inativeProtocol
-# Método: POST
-# Descrição:
-#   Inativa o protocolo de atendimento que estiver 'ativo' para um determinado 'chatId'.
-#   Útil para encerrar um atendimento manualmente ou via ferramenta.
-# Corpo da Requisição (JSON):
-#   - "chatId": (string, obrigatório) - O ID do chat cujo protocolo será inativado.
-# Retorna:
-#   - Em sucesso (200): Uma mensagem de sucesso.
-#   - Em erro (404): Se não houver protocolo ativo para o chatId.
-POST http://localhost:3002/inativeProtocol
+### Deletar Lead
+DELETE https://api.personal-dev.online/leads
 Content-Type: application/json
 
 {
-    "chatId": "5548999999999@c.us"
+    "chatId": "554899998888@c.us"
 }
 
+### Criar Protocolo
+POST https://api.personal-dev.online/protocols
+Content-Type: application/json
 
-###
-# Endpoint: /reset-database
-# Método: POST
-# Descrição:
-#   (APENAS PARA TESTES) Limpa completamente todas as tabelas (leads, protocols, messages).
-#   Use com cuidado.
-POST http://localhost:3002/reset-database
+{
+    "id": "uuid-protocolo",
+    "chat_id": "554899998888@c.us",
+    "human": false,
+    "hot_lead": "sim",
+    "status": "aberto",
+    "attendant_id": "123",
+    "last_message": "Olá!"
+}
+
+### Consultar todos os Protocolos
+GET https://api.personal-dev.online/protocols
+
+### Consultar Protocolo por id
+GET https://api.personal-dev.online/protocols:uuid-protocolo
+
+### Editar Protocolo
+PUT https://api.personal-dev.online/protocols
+Content-Type: application/json
+
+{
+    "id": "uuid-protocolo",
+    "chat_id": "554899998888@c.us",
+    "human": true,
+    "hot_lead": "não",
+    "status": "fechado",
+    "attendant_id": "456",
+    "last_message": "Finalizado"
+}
+
+### Deletar Protocolo
+DELETE https://api.personal-dev.online/protocols
+Content-Type: application/json
+
+{
+    "id": "uuid-protocolo"
+}
+
+### Criar Mensagem
+POST https://api.personal-dev.online/messages
+Content-Type: application/json
+
+{
+    "id": "uuid-mensagem",
+    "protocol_id": "uuid-protocolo",
+    "message_text": "Olá, tudo bem?",
+    "sending_type": "bot"
+}
+
+### Consultar todas as Mensagens
+GET https://api.personal-dev.online/messages
+
+### Consultar Mensagem por id
+GET https://api.personal-dev.online/messages:uuid-mensagem
+
+### Editar Mensagem
+PUT https://api.personal-dev.online/messages
+Content-Type: application/json
+
+{
+    "id": "uuid-mensagem",
+    "protocol_id": "uuid-protocolo",
+    "message_text": "Mensagem editada",
+    "sending_type": "attendant"
+}
+
+### Deletar Mensagem
+DELETE https://api.personal-dev.online/messages
+Content-Type: application/json
+
+{
+    "id": "uuid-mensagem"
+}
