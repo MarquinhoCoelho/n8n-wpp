@@ -17,7 +17,7 @@ app.get('/leads/:chatId', async (request, reply) => {
 
 app.get('/leads', async (request, reply) => {
   	const leads = await database.getLeads();
-	return reply.code(201).send(leads);
+	return reply.code(200).send(leads);
 });
 
 app.post('/leads', async (request, reply) => {
@@ -45,7 +45,7 @@ app.delete('/leads/:chatId', async (request, reply) => {
   }
   try {
     const lead = await database.deleteLead(chatId);
-    return reply.code(200).send(lead);
+    return reply.code(200).send({message: 'Lead deletado com sucesso.', lead});
   } catch (err) {
     return reply.code(400).send({ message: err.message });
   }
@@ -61,12 +61,16 @@ app.get('/protocols/:id', async (request, reply) => {
     return reply.code(400).send({ message: 'ID do protocolo é obrigatório.' });
   }
   const protocol = await database.getProtocolById(id);
-  return reply.code(201).send(protocol);
+
+  if (!protocol) {
+    return reply.code(200).send({ message: 'Protocolo não encontrado.' });
+  }
+  return reply.code(200).send(protocol);
 });
 
 app.get('/protocols', async (request, reply) => {
   const protocols = await database.getProtocols();
-  return reply.code(201).send(protocols);
+  return reply.code(200).send(protocols);
 });
 
 app.post('/protocols', async (request, reply) => {
@@ -94,7 +98,7 @@ app.delete('/protocols/:id', async (request, reply) => {
   }
   try {
     const protocol = await database.deleteProtocol(id);
-    return reply.code(200).send(protocol);
+    return reply.code(200).send({message: 'Protocolo deletado com sucesso.', protocol});
   } catch (err) {
     return reply.code(400).send({ message: err.message });
   }
@@ -108,12 +112,12 @@ app.get('/messages/:id', async (request, reply) => {
     return reply.code(400).send({ message: 'ID da mensagem é obrigatório.' });
   }
   const message = await database.getMessageById(id);
-  return reply.code(201).send(message);
+  return reply.code(200).send(message);
 });
 
 app.get('/messages', async (request, reply) => {
   const messages = await database.getMessages();
-  return reply.code(201).send(messages);
+  return reply.code(200).send(messages);
 });
 
 app.post('/messages', async (request, reply) => {
@@ -161,7 +165,7 @@ app.delete('/messages/:id', async (request, reply) => {
   }
   try {
     const message = await database.deleteMessage(id);
-    return reply.code(200).send(message);
+    return reply.code(200).send({message: 'Mensagem deletada com sucesso.', message});
   } catch (err) {
     return reply.code(400).send({ message: err.message });
   }
