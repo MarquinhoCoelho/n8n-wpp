@@ -38,14 +38,18 @@ app.put('/leads', async (request, reply) => {
   return reply.code(200).send(lead);
 })
 
-app.delete('/leads', async (request, reply) => {
-  const leadData = request.body;
-  if (!leadData || !leadData.chatId) {
-    return reply.code(400).send({ message: 'Dados inválidos para deletar um lead.' });
+app.delete('/leads/:chatId', async (request, reply) => {
+  const { chatId } = request.params;
+  if (!chatId) {
+    return reply.code(400).send({ message: 'chatId do chat é obrigatório.' });
   }
-  const lead = await database.deleteLead(leadData);
-  return reply.code(200).send(lead);
-})
+  try {
+    const lead = await database.deleteLead(chatId);
+    return reply.code(200).send(lead);
+  } catch (err) {
+    return reply.code(400).send({ message: err.message });
+  }
+});
 
 // Protocols //
 
@@ -83,13 +87,17 @@ app.put('/protocols', async (request, reply) => {
   return reply.code(200).send(protocol);
 });
 
-app.delete('/protocols', async (request, reply) => {
-  const { id } = request.body;
+app.delete('/protocols/:id', async (request, reply) => {
+  const { id } = request.params;
   if (!id) {
     return reply.code(400).send({ message: 'ID inválido para deletar protocolo.' });
   }
-  const protocol = await database.deleteProtocol(id);
-  return reply.code(200).send(protocol);
+  try {
+    const protocol = await database.deleteProtocol(id);
+    return reply.code(200).send(protocol);
+  } catch (err) {
+    return reply.code(400).send({ message: err.message });
+  }
 });
 
 // MESSAGES //
@@ -146,13 +154,17 @@ app.put('/messages', async (request, reply) => {
   }
 });
 
-app.delete('/messages', async (request, reply) => {
-  const { id } = request.body;
+app.delete('/messages/:id', async (request, reply) => {
+  const { id } = request.params;
   if (!id) {
     return reply.code(400).send({ message: 'ID inválido para deletar mensagem.' });
   }
-  const message = await database.deleteMessage(id);
-  return reply.code(200).send(message);
+  try {
+    const message = await database.deleteMessage(id);
+    return reply.code(200).send(message);
+  } catch (err) {
+    return reply.code(400).send({ message: err.message });
+  }
 });
 
 const start = async () => {

@@ -37,12 +37,7 @@ Content-Type: application/json
 }
 
 ### Deletar Lead
-DELETE https://api.personal-dev.online/leads
-Content-Type: application/json
-
-{
-    "chatId": "554899998888@c.us"
-}
+DELETE https://api.personal-dev.online/leads/554899998888@c.us
 
 ### Criar Protocolo
 POST https://api.personal-dev.online/protocols
@@ -79,12 +74,7 @@ Content-Type: application/json
 }
 
 ### Deletar Protocolo
-DELETE https://api.personal-dev.online/protocols
-Content-Type: application/json
-
-{
-    "id": "uuid-protocolo"
-}
+DELETE https://api.personal-dev.online/protocols/uuid-protocolo
 
 ### Criar Mensagem
 POST https://api.personal-dev.online/messages
@@ -115,9 +105,4 @@ Content-Type: application/json
 }
 
 ### Deletar Mensagem
-DELETE https://api.personal-dev.online/messages
-Content-Type: application/json
-
-{
-    "id": "uuid-mensagem"
-}
+DELETE https://api.personal-dev.online/messages/uuid-mensagem
