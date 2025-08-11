@@ -20,7 +20,7 @@ Content-Type: application/json
 GET https://api.personal-dev.online/leads
 
 ### Consultar Lead por chatId
-GET https://api.personal-dev.online/leads:554899998888@c.us
+GET https://api.personal-dev.online/leads/554899998888@c.us
 
 ### Editar Lead
 PUT https://api.personal-dev.online/leads
@@ -62,7 +62,7 @@ Content-Type: application/json
 GET https://api.personal-dev.online/protocols
 
 ### Consultar Protocolo por id
-GET https://api.personal-dev.online/protocols:uuid-protocolo
+GET https://api.personal-dev.online/protocols/uuid-protocolo
 
 ### Editar Protocolo
 PUT https://api.personal-dev.online/protocols
@@ -101,7 +101,7 @@ Content-Type: application/json
 GET https://api.personal-dev.online/messages
 
 ### Consultar Mensagem por id
-GET https://api.personal-dev.online/messages:uuid-mensagem
+GET https://api.personal-dev.online/messages/uuid-mensagem
 
 ### Editar Mensagem
 PUT https://api.personal-dev.online/messages
