@@ -61,8 +61,17 @@ GET https://api.personal-dev.online/leads/554899998888@c.us
 # ### DOCUMENTAÇÃO DA API
 # ### =================================================================
 ###
+POST https://api.personal-dev.online/imoveisLink
+Content-Type: application/json
 
-GET https://api.personal-dev.online/attendants
+{
+  "cidade": "Palhoça",
+  "preco_max": 250000
+}
+
+
+###
+GET https://api.personal-dev.online/imoveis
 
 ### Consultar todos os Leads
 GET https://api.personal-dev.online/leads
@@ -82,7 +91,7 @@ Content-Type: application/json
 }
 
 ### Deletar Lead
-DELETE https://api.personal-dev.online/leads/120363419109066086@g.us
+DELETE https://api.personal-dev.online/leads/5548991877081@c.us
 
 ### Criar Protocolo
 POST https://api.personal-dev.online/protocols

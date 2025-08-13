@@ -282,4 +282,36 @@ export class DatabasePostgres {
     const imoveis = await query;
     return imoveis;
   }
+
+  async getImoveisLinks(filter) {
+    let query = sql`SELECT listing_id FROM imoveis WHERE 1=1`;
+
+    if (filter.cidade) {
+      query = sql`${query} AND cidade ILIKE ${'%' + filter.cidade + '%'}`;
+    }
+    if (filter.bairro) {
+      query = sql`${query} AND bairro ILIKE ${'%' + filter.bairro + '%'}`;
+    }
+    if (filter.preco_min) {
+      query = sql`${query} AND preco >= ${filter.preco_min}`;
+    }
+    if (filter.preco_max) {
+      query = sql`${query} AND preco <= ${filter.preco_max}`;
+    }
+
+    query = sql`${query} LIMIT 10`;
+
+    // Executa a busca no banco
+    const imoveis = await query;
+
+    if (!imoveis || imoveis.length === 0) {
+      return [];
+    }
+
+    const links = imoveis.map(imovel => {
+      return `https://xpimobiliaria.com.br/imovel/imovel-id-${imovel.listing_id}/`;
+    });
+
+    return links;
+  }
 }

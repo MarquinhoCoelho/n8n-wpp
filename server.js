@@ -272,6 +272,18 @@ app.delete('/messages/:id', async (request, reply) => {
 
 // IMóVEIS
 
+app.post('/imoveisLink', async (request, reply) => {
+  const imovelDataFilter = request.body;
+
+  if (!imovelDataFilter) {
+    return reply.code(400).send({ message: 'Dados inválidos para consultar um imóvel.' });
+  }
+
+  const imoveisLinks = await database.getImoveisLinks(imovelDataFilter);
+  
+  return reply.code(200).send(imoveisLinks);
+});
+
 app.post('/imoveis', async (request, reply) => {
   const imovelDataFilter = request.body;
 
