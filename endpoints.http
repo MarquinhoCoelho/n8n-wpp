@@ -60,6 +60,7 @@ GET https://api.personal-dev.online/leads/554899998888@c.us
 # ### =================================================================
 # ### DOCUMENTAÇÃO DA API
 # ### =================================================================
+###
 
 GET https://api.personal-dev.online/attendants
 
@@ -81,7 +82,7 @@ Content-Type: application/json
 }
 
 ### Deletar Lead
-DELETE https://api.personal-dev.online/leads/554899998888@c.us
+DELETE https://api.personal-dev.online/leads/120363419109066086@g.us
 
 ### Criar Protocolo
 POST https://api.personal-dev.online/protocols
@@ -90,10 +91,10 @@ Content-Type: application/json
 {
     "chat_id": "554899998888@c.us",
     "human": false,
-    "hot_lead": "sim",
-    "status": "aberto",
-    "attendant_id": "123",
-    "last_message": "Olá!"
+    "hot_lead": "",
+    "status": "open",
+    "attendant_id": "",
+    "last_message": ""
 }
 
 ### Consultar todos os Protocolos
@@ -116,7 +117,7 @@ Content-Type: application/json
 }
 
 ### Deletar Protocolo
-DELETE https://api.personal-dev.online/protocols/uuid-protocolo
+DELETE https://api.personal-dev.online/protocols/0e7225c7-a76f-4a83-b584-7e84960aae4f
 
 ### Criar Mensagem
 POST https://api.personal-dev.online/messages
