@@ -309,7 +309,9 @@ export class DatabasePostgres {
     }
 
     const links = imoveis.map(imovel => {
-      return `https://xpimobiliaria.com.br/imovel/imovel-id-${imovel.listing_id}/`;
+      const numericId = imovel.listing_id.replace(/\D/g, '');
+      
+      return `https://xpimobiliaria.com.br/imovel/imovel-id-${numericId}/`;
     });
 
     return links;
