@@ -17,7 +17,7 @@ app.get('/leads/:chatId', async (request, reply) => {
     const lead = await database.getLeadByChatId(chatId);
 
     if (!lead) {
-      return reply.code(200).send({ message: 'Lead não encontrado.' });
+      return reply.code(200).send({ message: 'Lead não encontrado.', hasProtocol: false });
     }
 
     let protocol = await database.getProtocolActiveByLead(chatId);
