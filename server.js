@@ -272,9 +272,6 @@ app.delete('/messages/:id', async (request, reply) => {
 
 // IMóVEIS
 
-
-app.register(fastifyMultipart);
-
 app.post('/imoveis', async (request, reply) => {
   const imovelDataFilter = request.body;
 
