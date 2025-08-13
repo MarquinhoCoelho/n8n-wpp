@@ -1,7 +1,6 @@
 import fastify from 'fastify'
 import { DatabasePostgres } from './database-postgres.js'
 import { sql } from './db.js';
-import fastifyMultipart from '@fastify/multipart';
 import fastifyCors from '@fastify/cors';
 
 const app = fastify()
