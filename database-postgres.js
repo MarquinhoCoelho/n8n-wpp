@@ -28,26 +28,6 @@ export class DatabasePostgres {
     return novoLead;
   }
 
-  async getImoveis(filter) {
-    let query = sql`SELECT * FROM imoveis WHERE 1=1`;
-
-    if (filter.cidade) {
-      query = sql`${query} AND cidade ILIKE ${'%' + filter.cidade + '%'}`;
-    }
-    if (filter.bairro) {
-      query = sql`${query} AND bairro ILIKE ${'%' + filter.bairro + '%'}`;
-    }
-    if (filter.preco_min) {
-      query = sql`${query} AND preco >= ${filter.preco_min}`;
-    }
-    if (filter.preco_max) {
-      query = sql`${query} AND preco <= ${filter.preco_max}`;
-    }
-
-    const imoveis = await query;
-    return imoveis;
-  }
-
   async editLead(leadData) {
     const { chatId, name, phone, email, ...outrosCampos } = leadData;
     if (!chatId || !name || !phone || !email) {
@@ -279,4 +259,51 @@ export class DatabasePostgres {
     }
   }
 
+
+  // IMOVEIS //
+
+  
+  async getImoveis(filter) {
+    let query = sql`SELECT * FROM imoveis WHERE 1=1`;
+
+    if (filter.cidade) {
+      query = sql`${query} AND cidade ILIKE ${'%' + filter.cidade + '%'}`;
+    }
+    if (filter.bairro) {
+      query = sql`${query} AND bairro ILIKE ${'%' + filter.bairro + '%'}`;
+    }
+    if (filter.preco_min) {
+      query = sql`${query} AND preco >= ${filter.preco_min}`;
+    }
+    if (filter.preco_max) {
+      query = sql`${query} AND preco <= ${filter.preco_max}`;
+    }
+
+    const imoveis = await query;
+    return imoveis;
+  }
+
+  async agendarImportacaoXML(caminhoArquivo) {
+  const taskId = randomUUID();
+  await sql`
+    INSERT INTO importacao_xml (id, caminho_arquivo, status) 
+    VALUES (${taskId}, ${caminhoArquivo}, 'pendente')
+  `;
+}
+
+async buscarProximaTarefaPendente() {
+  const result = await sql`
+    SELECT * FROM importacao_xml 
+    WHERE status = 'pendente' 
+    ORDER BY criado_em 
+    LIMIT 1
+  `;
+  return result[0];
+}
+
+async atualizarStatusTarefa(taskId, status) {
+  await sql`
+    UPDATE importacao_xml SET status = ${status} WHERE id = ${taskId}
+  `;
+}
 }

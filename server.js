@@ -5,6 +5,14 @@ import { sql } from './db.js';
 import fastifyMultipart from '@fastify/multipart';
 import fastifyCors from '@fastify/cors';
 
+import { pipeline } from 'node:stream';
+import { promisify } from 'node:util';
+import { createWriteStream } from 'node:fs';
+import { randomUUID } from 'node:crypto';
+import path from 'node:path';
+
+const pump = promisify(pipeline);
+
 const app = fastify()
 const database = new DatabasePostgres()
 
@@ -289,82 +297,26 @@ app.post('/imoveis', async (request, reply) => {
 
 
 app.post('/importar-xml', async (request, reply) => {
-  try {
-    const data = await request.file(); // precisa do fastify-multipart
-    if (!data) {
-      return reply.code(400).send({ message: 'Nenhum arquivo enviado.' });
-    }
-
-    // Lê o conteúdo do XML
-    const xmlBuffer = await data.toBuffer();
-    const json = await parseStringPromise(xmlBuffer, { explicitArray: false });
-
-    // Acessa os imóveis do XML
-    const listings = json.ListingDataFeed.Listings.Listing;
-
-    let inseridos = 0;
-    let ignorados = 0;
-
-    for (const item of (Array.isArray(listings) ? listings : [listings])) {
-      const listingId = item.ListingID;
-
-      // Verifica se já existe
-      const existentes = await sql`
-        SELECT 1 FROM imoveis WHERE listing_id = ${listingId}
-      `;
-      if (existentes.length > 0) {
-        ignorados++;
-        continue; // pula se já existir
-      }
-
-      // Insere novo
-      await sql`
-        INSERT INTO imoveis (
-          listing_id, titulo, tipo_transacao, tipo_imovel, descricao, preco, moeda,
-          quartos, banheiros, suites, garagem, area, unidade_area,
-          pais, estado, cidade, bairro, endereco, numero, complemento, cep, url_imagem_principal
-        )
-        VALUES (
-          ${listingId},
-          ${item.Title},
-          ${item.TransactionType},
-          ${item.Details.PropertyType},
-          ${item.Details.Description},
-          ${item.Details.ListPrice._ || item.Details.ListPrice},
-          ${item.Details.ListPrice?.$.currency || 'BRL'},
-          ${item.Details.Bedrooms},
-          ${item.Details.Bathrooms},
-          ${item.Details.Suites},
-          ${item.Details.Garage?._ || item.Details.Garage},
-          ${item.Details.LivingArea?._ || null},
-          ${item.Details.LivingArea?.$.unit || null},
-          ${item.Location.Country._ || item.Location.Country},
-          ${item.Location.State._ || item.Location.State},
-          ${item.Location.City},
-          ${item.Location.Neighborhood},
-          ${item.Location.Address},
-          ${item.Location.StreetNumber},
-          ${item.Location.Complement},
-          ${item.Location.PostalCode},
-          ${Array.isArray(item.Media.Item) 
-            ? item.Media.Item.find(i => i.$?.primary === 'true')?._ 
-            : item.Media.Item?._
-          }
-        )
-      `;
-      inseridos++;
-    }
-
-    return reply.code(200).send({
-      message: 'Importação concluída.',
-      inseridos,
-      ignorados
-    });
-
-  } catch (err) {
-    console.error(err);
-    return reply.code(500).send({ message: 'Erro ao processar o XML.' });
+  const data = await request.file();
+  if (!data) {
+    return reply.code(400).send({ message: 'Nenhum arquivo enviado.' });
   }
+
+  // Gera um nome de arquivo único e define o caminho para salvar
+  const filename = `${randomUUID()}-${data.filename}`;
+  const filepath = path.join('/tmp', filename); // Salva na pasta /tmp do servidor
+
+  // Salva o arquivo no disco
+  await pump(data.file, createWriteStream(filepath));
+
+  // AGORA, EM VEZ DE PROCESSAR, APENAS AGENDAMOS A TAREFA NO BANCO
+  // (Você precisará criar essa tabela e a função no seu database.js)
+  await database.agendarImportacaoXML(filepath);
+
+  // Responde IMEDIATAMENTE para o usuário
+  return reply.code(202).send({
+    message: 'Arquivo recebido. A importação foi agendada e será processada em segundo plano.'
+  });
 });
 
 const start = async () => {
