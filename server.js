@@ -2,6 +2,7 @@ import fastify from 'fastify'
 import { DatabasePostgres } from './database-postgres.js'
 import { parseStringPromise } from 'xml2js';
 import { sql } from './db.js';
+import fastifyMultipart from '@fastify/multipart';
 
 const app = fastify()
 const database = new DatabasePostgres()
@@ -267,7 +268,7 @@ app.delete('/messages/:id', async (request, reply) => {
 
 
 // IMóVEIS
-
+app.register(fastifyMultipart);
 
 app.post('/imoveis', async (request, reply) => {
   const imovelDataFilter = request.body;
