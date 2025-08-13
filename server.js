@@ -1,17 +1,8 @@
 import fastify from 'fastify'
 import { DatabasePostgres } from './database-postgres.js'
-import { parseStringPromise } from 'xml2js';
 import { sql } from './db.js';
 import fastifyMultipart from '@fastify/multipart';
 import fastifyCors from '@fastify/cors';
-
-import { pipeline } from 'node:stream';
-import { promisify } from 'node:util';
-import { createWriteStream } from 'node:fs';
-import { randomUUID } from 'node:crypto';
-import path from 'node:path';
-
-const pump = promisify(pipeline);
 
 const app = fastify()
 const database = new DatabasePostgres()
@@ -280,8 +271,9 @@ app.delete('/messages/:id', async (request, reply) => {
 });
 
 
-
 // IMóVEIS
+
+
 app.register(fastifyMultipart);
 
 app.post('/imoveis', async (request, reply) => {
@@ -295,31 +287,39 @@ app.post('/imoveis', async (request, reply) => {
   return reply.code(200).send(imoveis);
 });
 
+app.post('/imovel', async (request, reply) => {
+  try {
+    const imovelData = request.body;
 
-// Em server.js
-
-app.post('/importar-xml', async (request, reply) => {
-  try { // <-- Adicionar
-    const data = await request.file();
-    if (!data) {
-      return reply.code(400).send({ message: 'Nenhum arquivo enviado.' });
+    if (!imovelData || !imovelData.listing_id) {
+      return reply.code(400).send({ message: 'Dados do imóvel inválidos.' });
     }
 
-    const filename = `${randomUUID()}-${data.filename}`;
-    const filepath = path.join('/tmp', filename);
+    const existentes = await sql`SELECT 1 FROM imoveis WHERE listing_id = ${imovelData.listing_id}`;
+    if (existentes.length > 0) {
+      return reply.code(200).send({ message: `Imóvel ${imovelData.listing_id} já existe.` });
+    }
 
-    await pump(data.file, createWriteStream(filepath));
+    await sql`
+      INSERT INTO imoveis (
+        listing_id, titulo, tipo_transacao, tipo_imovel, descricao, preco, moeda,
+        quartos, banheiros, suites, garagem, area, unidade_area,
+        pais, estado, cidade, bairro, endereco, numero, complemento, cep, url_imagem_principal
+      ) VALUES (
+        ${imovelData.listing_id}, ${imovelData.titulo}, ${imovelData.tipo_transacao}, ${imovelData.tipo_imovel},
+        ${imovelData.descricao}, ${imovelData.preco}, ${imovelData.moeda}, ${imovelData.quartos},
+        ${imovelData.banheiros}, ${imovelData.suites}, ${imovelData.garagem}, ${imovelData.area},
+        ${imovelData.unidade_area}, ${imovelData.pais}, ${imovelData.estado}, ${imovelData.cidade},
+        ${imovelData.bairro}, ${imovelData.endereco}, ${imovelData.numero}, ${imovelData.complemento},
+        ${imovelData.cep}, ${imovelData.url_imagem_principal}
+      )
+    `;
 
-    // Esta linha está causando o erro, pois a função não existe
-    await database.agendarImportacaoXML(filepath); 
+    return reply.code(201).send({ message: `Imóvel ${imovelData.listing_id} criado com sucesso.` });
 
-    return reply.code(202).send({
-      message: 'Arquivo recebido. A importação foi agendada.'
-    });
-
-  } catch (error) { // <-- Adicionar
-    console.error('[API] Erro na rota /importar-xml:', error);
-    return reply.code(500).send({ message: 'Ocorreu um erro interno no servidor.' });
+  } catch (error) {
+    console.error('Erro ao criar imóvel:', error);
+    return reply.code(500).send({ message: 'Erro interno ao salvar o imóvel.' });
   }
 });
 

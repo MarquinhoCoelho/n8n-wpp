@@ -282,28 +282,4 @@ export class DatabasePostgres {
     const imoveis = await query;
     return imoveis;
   }
-
- async agendarImportacaoXML(caminhoArquivo) {
-    const taskId = randomUUID();
-    await sql`
-      INSERT INTO importacao_xml (id, caminho_arquivo, status) 
-      VALUES (${taskId}, ${caminhoArquivo}, 'pendente')
-    `;
-  }
-
-  async buscarProximaTarefaPendente() {
-    const result = await sql`
-      SELECT * FROM importacao_xml 
-      WHERE status = 'pendente' 
-      ORDER BY criado_em 
-      LIMIT 1
-    `;
-    return result[0];
-  }
-
-  async atualizarStatusTarefa(taskId, status) {
-    await sql`
-      UPDATE importacao_xml SET status = ${status} WHERE id = ${taskId}
-    `;
-  }
 }
