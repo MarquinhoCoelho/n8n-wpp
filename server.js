@@ -103,7 +103,7 @@ app.get('/protocols', async (request, reply) => {
 
 app.post('/protocols', async (request, reply) => {
   const protocolData = request.body;
-  if (!protocolData || !protocolData.id || !protocolData.chat_id || !protocolData.status) {
+  if (!protocolData || !protocolData.chat_id || !protocolData.status) {
     return reply.code(400).send({ message: 'Dados inválidos para criar protocolo.' });
   }
   const protocol = await database.createProtocol(protocolData);
