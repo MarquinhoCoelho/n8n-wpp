@@ -296,27 +296,31 @@ app.post('/imoveis', async (request, reply) => {
 });
 
 
+// Em server.js
+
 app.post('/importar-xml', async (request, reply) => {
-  const data = await request.file();
-  if (!data) {
-    return reply.code(400).send({ message: 'Nenhum arquivo enviado.' });
+  try { // <-- Adicionar
+    const data = await request.file();
+    if (!data) {
+      return reply.code(400).send({ message: 'Nenhum arquivo enviado.' });
+    }
+
+    const filename = `${randomUUID()}-${data.filename}`;
+    const filepath = path.join('/tmp', filename);
+
+    await pump(data.file, createWriteStream(filepath));
+
+    // Esta linha está causando o erro, pois a função não existe
+    await database.agendarImportacaoXML(filepath); 
+
+    return reply.code(202).send({
+      message: 'Arquivo recebido. A importação foi agendada.'
+    });
+
+  } catch (error) { // <-- Adicionar
+    console.error('[API] Erro na rota /importar-xml:', error);
+    return reply.code(500).send({ message: 'Ocorreu um erro interno no servidor.' });
   }
-
-  // Gera um nome de arquivo único e define o caminho para salvar
-  const filename = `${randomUUID()}-${data.filename}`;
-  const filepath = path.join('/tmp', filename); // Salva na pasta /tmp do servidor
-
-  // Salva o arquivo no disco
-  await pump(data.file, createWriteStream(filepath));
-
-  // AGORA, EM VEZ DE PROCESSAR, APENAS AGENDAMOS A TAREFA NO BANCO
-  // (Você precisará criar essa tabela e a função no seu database.js)
-  await database.agendarImportacaoXML(filepath);
-
-  // Responde IMEDIATAMENTE para o usuário
-  return reply.code(202).send({
-    message: 'Arquivo recebido. A importação foi agendada e será processada em segundo plano.'
-  });
 });
 
 const start = async () => {
