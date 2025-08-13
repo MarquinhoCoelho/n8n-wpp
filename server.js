@@ -3,9 +3,15 @@ import { DatabasePostgres } from './database-postgres.js'
 import { parseStringPromise } from 'xml2js';
 import { sql } from './db.js';
 import fastifyMultipart from '@fastify/multipart';
+import fastifyCors from '@fastify/cors';
 
 const app = fastify()
 const database = new DatabasePostgres()
+
+await app.register(fastifyCors, {
+  origin: "*", // Permite todas as origens. Para mais segurança, use 'http://127.0.0.1:5500'
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Permite os métodos que você usa
+});
 
 // LEADS //
 

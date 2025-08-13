@@ -24,7 +24,7 @@
       const formData = new FormData();
       formData.append('xmlFile', fileInput.files[0]);
 
-      const res = await fetch('/importar-xml', {
+      const res = await fetch('https://api.personal-dev.online/importar-xml', {
         method: 'POST',
         body: formData
       });
