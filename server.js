@@ -324,13 +324,16 @@ app.post('/imovel', async (request, reply) => {
 });
 
 const start = async () => {
-  try {
-    await app.listen({ port: 3002, host: '0.0.0.0' })
-    console.log('HTTP Server running on')
-  } catch (err) {
-    app.log.error(err)
-    process.exit(1)
-  }
+try {
+  await app.listen({
+    host: '0.0.0.0',
+    port: process.env.PORT ?? 3002,
+  })
+  console.log('✅ Servidor HTTP rodando na porta 3002');
+} catch (err) {
+  console.error('❌ Erro ao iniciar o servidor:', err);
+  process.exit(1);
+}
 }
 
 start()
