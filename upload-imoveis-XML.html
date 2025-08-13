@@ -27,6 +27,9 @@
         const progressBar = document.getElementById('progressBar');
         const statusHeader = document.getElementById('status');
 
+        // --- NOVA FUNÇÃO DE PAUSA ---
+        const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!fileInput.files.length) {
@@ -43,7 +46,6 @@
             const file = fileInput.files[0];
             const fileContent = await file.text();
             
-            // Usando o parser nativo do navegador para ler o XML
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(fileContent, "application/xml");
 
@@ -56,6 +58,13 @@
             let count = 0;
             for (const listingNode of listings) {
                 count++;
+                
+                // --- APLICA A PAUSA AQUI ---
+                const tempoDePausa = 500 + Math.random() * 1000; // Pausa entre 0.5 e 1.5 segundos
+                addLog(`Aguardando ${tempoDePausa.toFixed(0)}ms...`);
+                await delay(tempoDePausa);
+                // -------------------------
+
                 addLog(`Processando imóvel ${count} de ${total} (ID: ${getText(listingNode, 'ListingID')})...`);
                 
                 const imovelData = extrairDadosDoImovel(listingNode);
@@ -71,6 +80,8 @@
                     addLog(` -> Resposta: ${result.message}`);
                 } catch (error) {
                     addLog(` -> ERRO: ${error.message}`);
+                    // Adicione um 'break' se quiser parar o loop em caso de erro
+                    // break; 
                 }
                 progressBar.value = count;
             }
@@ -79,19 +90,18 @@
 
         function addLog(message) {
             logsDiv.innerHTML += message + '\n';
-            logsDiv.scrollTop = logsDiv.scrollHeight; // Auto-scroll
+            logsDiv.scrollTop = logsDiv.scrollHeight;
         }
 
+        // As funções getText, getAttribute e extrairDadosDoImovel continuam iguais...
         function getText(node, tagName) {
             const element = node.querySelector(tagName);
             return element ? element.textContent.trim() : null;
         }
-        
         function getAttribute(node, tagName, attribute) {
             const element = node.querySelector(tagName);
             return element ? element.getAttribute(attribute) : null;
         }
-
         function extrairDadosDoImovel(node) {
             return {
                 listing_id: getText(node, 'ListingID'),

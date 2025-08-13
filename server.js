@@ -8,8 +8,8 @@ const app = fastify()
 const database = new DatabasePostgres()
 
 await app.register(fastifyCors, {
-  origin: "*", // Permite todas as origens. Para mais segurança, use 'http://127.0.0.1:5500'
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Permite os métodos que você usa
+  origin: "*", // Permite requisições de qualquer origem
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Permite os métodos necessários
 });
 
 // LEADS //
