@@ -1,6 +1,7 @@
 import fastify from 'fastify'
 import { DatabasePostgres } from './database-postgres.js'
-import { randomUUID } from 'node:crypto'
+import { parseStringPromise } from 'xml2js';
+import { sql } from './db.js';
 
 const app = fastify()
 const database = new DatabasePostgres()
@@ -47,8 +48,6 @@ app.get('/attendants', async (request, reply) => {
 ]
   );
 });
-
-
 
 app.post('/leads', async (request, reply) => {
   const leadData = request.body;
@@ -262,6 +261,102 @@ app.delete('/messages/:id', async (request, reply) => {
     return reply.code(200).send({message: 'Mensagem deletada com sucesso.', message});
   } catch (err) {
     return reply.code(400).send({ message: err.message });
+  }
+});
+
+
+
+// IMóVEIS
+
+
+app.post('/imoveis', async (request, reply) => {
+  const imovelDataFilter = request.body;
+
+  if (!imovelDataFilter) {
+    return reply.code(400).send({ message: 'Dados inválidos para consultar um imóvel.' });
+  }
+
+  const imoveis = await database.getImoveis(imovelDataFilter);
+  return reply.code(200).send(imoveis);
+});
+
+
+app.post('/importar-xml', async (request, reply) => {
+  try {
+    const data = await request.file(); // precisa do fastify-multipart
+    if (!data) {
+      return reply.code(400).send({ message: 'Nenhum arquivo enviado.' });
+    }
+
+    // Lê o conteúdo do XML
+    const xmlBuffer = await data.toBuffer();
+    const json = await parseStringPromise(xmlBuffer, { explicitArray: false });
+
+    // Acessa os imóveis do XML
+    const listings = json.ListingDataFeed.Listings.Listing;
+
+    let inseridos = 0;
+    let ignorados = 0;
+
+    for (const item of (Array.isArray(listings) ? listings : [listings])) {
+      const listingId = item.ListingID;
+
+      // Verifica se já existe
+      const existentes = await sql`
+        SELECT 1 FROM imoveis WHERE listing_id = ${listingId}
+      `;
+      if (existentes.length > 0) {
+        ignorados++;
+        continue; // pula se já existir
+      }
+
+      // Insere novo
+      await sql`
+        INSERT INTO imoveis (
+          listing_id, titulo, tipo_transacao, tipo_imovel, descricao, preco, moeda,
+          quartos, banheiros, suites, garagem, area, unidade_area,
+          pais, estado, cidade, bairro, endereco, numero, complemento, cep, url_imagem_principal
+        )
+        VALUES (
+          ${listingId},
+          ${item.Title},
+          ${item.TransactionType},
+          ${item.Details.PropertyType},
+          ${item.Details.Description},
+          ${item.Details.ListPrice._ || item.Details.ListPrice},
+          ${item.Details.ListPrice?.$.currency || 'BRL'},
+          ${item.Details.Bedrooms},
+          ${item.Details.Bathrooms},
+          ${item.Details.Suites},
+          ${item.Details.Garage?._ || item.Details.Garage},
+          ${item.Details.LivingArea?._ || null},
+          ${item.Details.LivingArea?.$.unit || null},
+          ${item.Location.Country._ || item.Location.Country},
+          ${item.Location.State._ || item.Location.State},
+          ${item.Location.City},
+          ${item.Location.Neighborhood},
+          ${item.Location.Address},
+          ${item.Location.StreetNumber},
+          ${item.Location.Complement},
+          ${item.Location.PostalCode},
+          ${Array.isArray(item.Media.Item) 
+            ? item.Media.Item.find(i => i.$?.primary === 'true')?._ 
+            : item.Media.Item?._
+          }
+        )
+      `;
+      inseridos++;
+    }
+
+    return reply.code(200).send({
+      message: 'Importação concluída.',
+      inseridos,
+      ignorados
+    });
+
+  } catch (err) {
+    console.error(err);
+    return reply.code(500).send({ message: 'Erro ao processar o XML.' });
   }
 });
 
